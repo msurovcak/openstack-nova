@@ -419,7 +419,7 @@ class IptablesFirewallDriver(FirewallDriver):
                                     for ip in db.fixed_ip_get_by_instance(ctxt, instance['uuid'])]
                             except:
                                 LOG.info('___ got exception %r' % (sys.exc_info()[0]))
-                                LOG.info('___ let\' try again after short time')
+                                LOG.info('___ let\'s try again after short time')
                                 greenthread.sleep(1)
                                 try:
                                     ips = [ip['address']
