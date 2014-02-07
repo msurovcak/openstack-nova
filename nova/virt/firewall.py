@@ -30,6 +30,8 @@ from nova.virt import netutils
 
 import sys
 
+from eventlet import greenthread
+
 LOG = logging.getLogger(__name__)
 
 firewall_opts = [
@@ -417,8 +419,14 @@ class IptablesFirewallDriver(FirewallDriver):
                                     for ip in db.fixed_ip_get_by_instance(ctxt, instance['uuid'])]
                             except:
                                 LOG.info('___ got exception %r' % (sys.exc_info()[0]))
-
-                                ips = []
+                                LOG.info('___ let\' try again after short time')
+                                greenthread.sleep(1)
+                                try:
+                                    ips = [ip['address']
+                                        for ip in db.fixed_ip_get_by_instance(ctxt, instance['uuid'])]
+                                except:
+                                    LOG.info('___ 2nd run - got exception %r' % (sys.exc_info()[0]))
+                                    ips = []
 
                             LOG.info('___ got %i ips () for instance %s' % (len(ips),))
 
