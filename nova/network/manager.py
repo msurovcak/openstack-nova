@@ -929,6 +929,7 @@ class NetworkManager(manager.SchedulerDependentManager):
 
     def _do_trigger_security_group_members_refresh_for_instance(self,
                                                                 instance_id):
+        LOG.info('___ Calling _do_trigger_security_group_members_refresh_for_instance %s' % (instance_id))
         # NOTE(francois.charlier): the instance may have been deleted already
         # thus enabling `read_deleted`
         admin_context = context.get_admin_context(read_deleted='yes')
@@ -945,6 +946,7 @@ class NetworkManager(manager.SchedulerDependentManager):
                                                         group_ids)
         self.security_group_api.trigger_handler('security_group_members',
                                                 admin_context, group_ids)
+         LOG.info('___ Finished _do_trigger_security_group_members_refresh_for_instance %s' % (instance_id))
 
     def get_floating_ips_by_fixed_address(self, context, fixed_address):
         # NOTE(jkoelker) This is just a stub function. Managers supporting
@@ -1311,6 +1313,7 @@ class NetworkManager(manager.SchedulerDependentManager):
         #             with a network, or a cluster of computes with a network
         #             and use that network here with a method like
         #             network_get_by_compute_host
+        LOG.info('___ Calling allocate_fixed_ip %s' % (instance_id))
         address = None
         instance_ref = self.db.instance_get(context, instance_id)
 
@@ -1336,8 +1339,10 @@ class NetworkManager(manager.SchedulerDependentManager):
                     address = self.db.fixed_ip_associate_pool(
                         context.elevated(), network['id'],
                         instance_ref['uuid'])
+                LOG.info('___ Going to call self._do_trigger_security_group_members_refresh_for_instance %s' % (instance_id))
                 self._do_trigger_security_group_members_refresh_for_instance(
                     instance_id)
+                LOG.info('___ Finished call self._do_trigger_security_group_members_refresh_for_instance %s' % (instance_id))
                 get_vif = self.db.virtual_interface_get_by_instance_and_network
                 vif = get_vif(context, instance_ref['uuid'], network['id'])
                 values = {'allocated': True,
@@ -2061,6 +2066,7 @@ class VlanManager(RPCAllocateFixedIP, FloatingIP, NetworkManager):
 
     def allocate_fixed_ip(self, context, instance_id, network, **kwargs):
         """Gets a fixed ip from the pool."""
+        LOG.info('___ Calling allocate_fixed_ip %s' % (instance_id))
         instance = self.db.instance_get(context, instance_id)
 
         if kwargs.get('vpn', None):
@@ -2089,6 +2095,7 @@ class VlanManager(RPCAllocateFixedIP, FloatingIP, NetworkManager):
                   'virtual_interface_id': vif['id']}
         self.db.fixed_ip_update(context, address, values)
         self._setup_network_on_host(context, network)
+        LOG.info('___ Finished allocate_fixed_ip %s' % (instance_id))
         return address
 
     @wrap_check_policy

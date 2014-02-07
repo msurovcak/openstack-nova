@@ -359,6 +359,7 @@ class IptablesManager(object):
         rules. This happens atomically, thanks to iptables-restore.
 
         """
+        LOG.info('___ Calling IptablesManager._apply (synchronized)')
         s = [('iptables', self.ipv4)]
         if FLAGS.use_ipv6:
             s += [('ip6tables', self.ipv6)]
@@ -375,6 +376,8 @@ class IptablesManager(object):
                 self.execute('%s-restore' % (cmd,), '-c', run_as_root=True,
                              process_input='\n'.join(new_filter),
                              attempts=5)
+
+        LOG.info('___ Finished synchronized method IptablesManager._apply')
         LOG.debug(_("IPTablesManager.apply completed with success"))
 
     def _modify_rules(self, current_lines, table, binary=None):

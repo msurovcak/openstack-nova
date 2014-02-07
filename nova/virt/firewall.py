@@ -28,6 +28,7 @@ from nova.openstack.common import log as logging
 from nova import utils
 from nova.virt import netutils
 
+import sys
 
 LOG = logging.getLogger(__name__)
 
@@ -182,6 +183,7 @@ class IptablesFirewallDriver(FirewallDriver):
 
     def prepare_instance_filter(self, instance, network_info):
         # make sure this is legacy nw_info
+        LOG.info('___ Calling prepare_instance_filter %s' % (instance))
         network_info = self._handle_network_info_model(network_info)
 
         self.instances[instance['id']] = instance
@@ -338,6 +340,7 @@ class IptablesFirewallDriver(FirewallDriver):
 
     def instance_rules(self, instance, network_info):
         # make sure this is legacy nw_info
+        LOG.info('___ Calling instance_rules %s' % (instance))
         network_info = self._handle_network_info_model(network_info)
 
         ctxt = context.get_admin_context()
@@ -352,6 +355,7 @@ class IptablesFirewallDriver(FirewallDriver):
 
         #Allow project network traffic
         if FLAGS.allow_same_net_traffic:
+            LOG.info('___ Allowing same_net_traffic for instance %s' % ())
             self._do_project_network_rules(ipv4_rules, ipv6_rules,
                                            network_info)
         # We wrap these in FLAGS.use_ipv6 because they might cause
@@ -364,11 +368,15 @@ class IptablesFirewallDriver(FirewallDriver):
         security_groups = db.security_group_get_by_instance(ctxt,
                                                             instance['id'])
 
+        LOG.info('___ Got %i groups [%r] for instance ' % (len(security_groups), security_groups, instance['uuid']))
+
         # then, security group chains and rules
         for security_group in security_groups:
+            LOG.info('___ Calling group_rule_get_by_security_group(id:%s)' % (security_group['id']))
             rules = db.security_group_rule_get_by_security_group(ctxt,
                                                           security_group['id'])
 
+            LOG.info('___ Got %i rules' % (len(rules)))
             for rule in rules:
 
                 if not rule.cidr:
@@ -408,7 +416,11 @@ class IptablesFirewallDriver(FirewallDriver):
                                 ips = [ip['address']
                                     for ip in db.fixed_ip_get_by_instance(ctxt, instance['uuid'])]
                             except:
+                                LOG.info('___ got exception %r' % (sys.exc_info()[0]))
+
                                 ips = []
+
+                            LOG.info('___ got %i ips () for instance %s' % (len(ips),))
 
                             for ip in ips:
                                 subrule = args + ['-s %s' % ip]
@@ -416,6 +428,8 @@ class IptablesFirewallDriver(FirewallDriver):
 
         ipv4_rules += ['-j $sg-fallback']
         ipv6_rules += ['-j $sg-fallback']
+
+        LOG.info('___ Finished instance_rules %s' % (instance))
 
         return ipv4_rules, ipv6_rules
 
@@ -427,25 +441,34 @@ class IptablesFirewallDriver(FirewallDriver):
         self.iptables.apply()
 
     def refresh_security_group_rules(self, security_group):
+        LOG.info('___ Calling refresh_security_group_rules %s' % (security_group))
         self.do_refresh_security_group_rules(security_group)
         self.iptables.apply()
+        LOG.info('___ Finished refresh_security_group_rules %s' % (security_group))
 
     def refresh_instance_security_rules(self, instance):
+        LOG.info('___ Calling refresh_instance_security_rules %s' % (instance))
         self.do_refresh_instance_rules(instance)
         self.iptables.apply()
+        LOG.info('___ Finished refresh_instance_security_rules %s' % (instance))
 
     @utils.synchronized('iptables', external=True)
     def _inner_do_refresh_rules(self, instance, ipv4_rules,
                                                ipv6_rules):
+        LOG.info('___ Calling _inner_do_refresh_rules (synchronized)')
         self.remove_filters_for_instance(instance)
         self.add_filters_for_instance(instance, ipv4_rules, ipv6_rules)
+        LOG.info('___ Finished _inner_do_refresh_rules (synchronized)')
 
     def do_refresh_security_group_rules(self, security_group):
+        LOG.info('___ Calling do_refresh_security_group_rules %s' % (security_group))
         for instance in self.instances.values():
+            LOG.info('___ Loop item in  do_refresh_security_group_rules %s' % (instance))
             network_info = self.network_infos[instance['id']]
             ipv4_rules, ipv6_rules = self.instance_rules(instance,
                                                          network_info)
             self._inner_do_refresh_rules(instance, ipv4_rules, ipv6_rules)
+        LOG.info('___ Finished do_refresh_security_group_rules %s' % (security_group))
 
     def do_refresh_instance_rules(self, instance):
         network_info = self.network_infos[instance['id']]
@@ -460,8 +483,10 @@ class IptablesFirewallDriver(FirewallDriver):
     @utils.synchronized('iptables', external=True)
     def _do_refresh_provider_fw_rules(self):
         """Internal, synchronized version of refresh_provider_fw_rules."""
+        LOG.info('___ Calling _do_refresh_provider_fw_rules (synchronized)')
         self._purge_provider_fw_rules()
         self._build_provider_fw_rules()
+        LOG.info('___ Finished _do_refresh_provider_fw_rules (synchronized)')
 
     def _purge_provider_fw_rules(self):
         """Remove all rules from the provider chains."""

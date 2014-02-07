@@ -1116,6 +1116,9 @@ def fixed_ip_associate_pool(context, network_id, instance_uuid=None,
         if host:
             fixed_ip_ref['host'] = host
         session.add(fixed_ip_ref)
+
+        LOG.info('___ fixed_ip_associate_pool for %s got %s' % (instance_uuid, fixed_ip_ref['address']))
+
     return fixed_ip_ref['address']
 
 

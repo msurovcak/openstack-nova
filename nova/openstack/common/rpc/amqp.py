@@ -350,6 +350,7 @@ def multicall(conf, context, topic, msg, timeout, connection_pool):
     # connection.close() will get called which will put it back into
     # the pool
     LOG.debug(_('Making asynchronous call on %s ...'), topic)
+    LOG.info('___ Multicall - topic: %s msg: %s' % (topic, msg))
     msg_id = uuid.uuid4().hex
     msg.update({'_msg_id': msg_id})
     LOG.debug(_('MSG_ID is %s') % (msg_id))
@@ -375,6 +376,7 @@ def call(conf, context, topic, msg, timeout, connection_pool):
 def cast(conf, context, topic, msg, connection_pool):
     """Sends a message on a topic without waiting for a response."""
     LOG.debug(_('Making asynchronous cast on %s...'), topic)
+    LOG.info('___ Cast - topic: %s msg: %s' % (topic, msg))
     pack_context(msg, context)
     with ConnectionContext(conf, connection_pool) as conn:
         conn.topic_send(topic, msg)
