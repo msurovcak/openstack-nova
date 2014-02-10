@@ -370,7 +370,7 @@ class IptablesFirewallDriver(FirewallDriver):
         security_groups = db.security_group_get_by_instance(ctxt,
                                                             instance['id'])
 
-        LOG.info('___ Got %i groups [%r] for instance ' % (len(security_groups), security_groups, instance['uuid']))
+        LOG.info('___ Got %i groups [%r] for instance %s' % (len(security_groups), security_groups, instance['uuid']))
 
         # then, security group chains and rules
         for security_group in security_groups:
