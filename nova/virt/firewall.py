@@ -428,7 +428,7 @@ class IptablesFirewallDriver(FirewallDriver):
                                     LOG.info('___ 2nd run - got exception %r' % (sys.exc_info()[0]))
                                     ips = []
 
-                            LOG.info('___ got %i ips () for instance %s' % (len(ips),))
+                            LOG.info('___ got %i ips () for instance %s' % (len(ips), instance['uuid']))
 
                             for ip in ips:
                                 subrule = args + ['-s %s' % ip]
