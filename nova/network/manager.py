@@ -946,7 +946,8 @@ class NetworkManager(manager.SchedulerDependentManager):
                                                         group_ids)
         self.security_group_api.trigger_handler('security_group_members',
                                                 admin_context, group_ids)
-         LOG.info('___ Finished _do_trigger_security_group_members_refresh_for_instance %s' % (instance_id))
+        
+        LOG.info('___ Finished _do_trigger_security_group_members_refresh_for_instance %s' % (instance_id))
 
     def get_floating_ips_by_fixed_address(self, context, fixed_address):
         # NOTE(jkoelker) This is just a stub function. Managers supporting
